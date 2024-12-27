@@ -1,118 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TG- @cric_stream</title>
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.5.0/controls.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.js"></script>
-    <script type="text/javascript" src="https://tv2.mgsportstv.com/Player/js/level.js"></script>
-    <script src="https://tv2.mgsportstv.com/Player/js/dash-shaka-playback.js"></script>
-    <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool@latest'></script>
+<html>
+  <head>
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG-@cric_stream</title>
+     <link rel="shortcut icon" type="image/x-icon" href="Cric stream Favicon.jpg">
+    <!-- Shaka Player UI compiled library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.12.5/shaka-player.ui.min.js"></script>
+    <!-- Shaka Player UI compiled library default CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.12.5/controls.min.css">
+    <!-- Chromecast SDK (optional for Chromecast support) -->
     <style>
-        body {
-            margin: 0;
-            padding: 5px;
-            background-color: white;
-            
-        }
+      #live-label {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        font-size: 10px; /* Default font size for larger screens */
+        color: white;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 4px 8px;
+        border-radius: 5px;
+        display: none;
+        z-index: 10;
+      }
 
-        #player {
-            width:100%;
-            height: 90vh;
-            
-        }
+      #live-label a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+      }
 
-        @media (max-width: 768px) {
-            #player {
-                height: 28vh;
-            }
+      /* For screens larger than 768px (laptops, desktops) */
+      @media (min-width: 768px) {
+        #live-label {
+          font-size: 8px;
+          padding: 5px 10px;
         }
+      }
+
+      /* For smaller screens (mobiles) */
+      @media (max-width: 767px) {
+        #live-label {
+          font-size: 5px;
+          padding: 2px 4px;
+          top: 3px;
+          left: 3px;
+        }
+      }
     </style>
-</head>
-
-<body>
-    <div id="player"></div>
+  </head>
+  <body>
+    <div data-shaka-player-container style="max-width:100%">
+      <video autoplay data-shaka-player id="video" style="width:100%;height:100%"></video>
+      <div id="live-label">
+        <center><a href="https://t.me/cric_stream">CRIC <br> STREAM</a></center>
+      </div>
+    </div>
 
     <script>
-        var dash_mpd_url = "https://abmyxykaaaaaaaamkyvb65fuqebyg.7a77200bf98444ac997a89ed83775793.emt.cf.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/f60kqesunw/out/v1/a435ed7a00f947deb4369b46d8f2fb70/cenc.mpd";
-        var drmKeyId = "1779c27b9d077a3ba0c9cc1bb9a94b9f";
-        var drmKey = "cc5cf3b7928fb9e0a1ee6a8b566f0a8e";
+      const manifestUri = 'https://abmyxykaaaaaaaamkyvb65fuqebyg.7a77200bf98444ac997a89ed83775793.emt.cf.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/f60kqesunw/out/v1/a435ed7a00f947deb4369b46d8f2fb70/cenc.mpd';
 
-        var drmKeys = {};
-        drmKeys[drmKeyId] = drmKey;
+      async function init() {
+        const video = document.getElementById('video');
+        const ui = video['ui'];
+        const controls = ui.getControls();
+        const player = controls.getPlayer();
 
-        var drmConfig = {
-            clearKeys: drmKeys
+        // DRM Configuration with ClearKey
+        const clearKeyConfig = {
+          '1779c27b9d077a3ba0c9cc1bb9a94b9f': 'cc5cf3b7928fb9e0a1ee6a8b566f0a8e'
         };
-        
-        var thumbnailURL = "https://hqfilm4u.wuaze.com/wp-content/uploads/2024/12/CRIC-stream-Thumbnail-.jpg";
 
-        var player = new Clappr.Player({
-            source: dash_mpd_url,
-            mimeType: 'application/dash+xml',
-            height: '100%',
-            width: '100%',
-            autoPlay: false,
-             preload: 'auto', 
-             poster: thumbnailURL,
-            plugins: [LevelSelector, DashShakaPlayback, Clappr.MediaControl],
-            mediacontrol: {
-                seekbar: "#886FFF",
-                buttons: "#C8A8D8"
-            },
-            chromecast: {
-                appId: "9DFB77C0",
-                contentType: "video/mp4"
-            },
-            shakaConfiguration: {
-                drm: drmConfig,
-                abr: {
-                    enabled: true,
-                    defaultBandwidthEstimate: 100000, // Force lower bandwidth estimate for default low quality
-                    restrictions: {
-                        maxHeight: 540 // Restrict initial quality to 360p
-                    }
-                }
-            },
-            events: {
-                onReady: function () {
-                    var clickToPausePlugin = this.getPlugin("click_to_pause");
-                    if (clickToPausePlugin) {
-                        clickToPausePlugin.disable();
-                    }
-                },
-                onPlaybackReady: function () {
-                    console.log('Playback ready!');
-                }
-            },
-            parentId: "#player"
+        // Shaka Player UI Configuration (Remove progress and add "Live" label)
+        const config = {
+          'controlPanelElements': ['play_pause', 'spacer', 'mute', 'quality', 'fullscreen']
+        };
+
+        ui.configure(config);
+
+        // Configure DRM
+        player.configure({
+          drm: {
+            clearKeys: clearKeyConfig
+          }
         });
+
+        // Attach player and UI to the window to make it easy to access in the JS console.
+        window.player = player;
+        window.ui = ui;
+
+        // Listen for error events.
+        player.addEventListener('error', onPlayerErrorEvent);
+        controls.addEventListener('error', onUIErrorEvent);
+
+        // Show "Live" label when the stream is live
+        const liveLabel = document.getElementById('live-label');
+        liveLabel.style.display = 'block';
+
+        // Try to load the manifest.
+        try {
+          await player.load(manifestUri);
+          console.log('The video has now been loaded!');
+        } catch (error) {
+          onPlayerError(error);
+        }
+
+        // Detect when controls are visible and show/hide the live label
+        const controlPanel = document.querySelector('.shaka-controls');
         
-        
-    if(confirm("Join Our Telegram Channel @cric_stream For More Links")) { window.location.href = "https://t.me/cric_stream" }
+        controlPanel.addEventListener('mouseenter', () => {
+          liveLabel.style.display = 'block';  // Show the "Live" label when controls are visible
+        });
+
+        controlPanel.addEventListener('mouseleave', () => {
+          liveLabel.style.display = 'none';  // Hide the "Live" label when controls are hidden
+        });
+      }
+
+      function onPlayerErrorEvent(errorEvent) {
+        // Extract the shaka.util.Error object from the event.
+        onPlayerError(errorEvent.detail);
+      }
+
+      function onPlayerError(error) {
+        // Handle player error
+        console.error('Error code', error.code, 'object', error);
+      }
+
+      function onUIErrorEvent(errorEvent) {
+        // Extract the shaka.util.Error object from the event.
+        onPlayerError(errorEvent.detail);
+      }
+
+      function initFailed(errorEvent) {
+        console.error('Unable to load the UI library!');
+      }
+
+      // Listen to the custom shaka-ui-loaded event, to wait until the UI is loaded.
+      document.addEventListener('shaka-ui-loaded', init);
+      document.addEventListener('shaka-ui-load-failed', initFailed);
     </script>
-     <!-- Powered by Supercounters -->
-    <center>
-        <script type="text/javascript" src="//widget.supercounters.com/ssl/online_t.js"></script>
-        <script type="text/javascript">sc_online_t(1703448, "Watching....", "#1d1d21");</script>
-        <br>
-        <noscript><a href="https://www.supercounters.com/"></a></noscript>
-    </center>
-    <!-- END: Powered by Supercounters -->
 
-    <div style="background-color: #0074d9; text-align: center; padding: 10px;">
-        <a href="https://telegram.me/cric_stream" target="_blank">
-            <button id="joinTelegramButton">Join Telegram</button>
-        </a>
-    </div>
-    <div>
-        <br>
-        <br>
-        <script async="async" data-cfasync="false" src="//carryglanced.com/2346ffc02acfb9eb4451708a5df9f609/invoke.js"></script>
-        <div id="container-2346ffc02acfb9eb4451708a5df9f609"></div>
-    </div>
-</body>
+     <center>
+            <script type="text/javascript" src="//widget.supercounters.com/ssl/online_t.js"></script>
+            <script type="text/javascript">sc_online_t(1703448, "Watching....", "#1d1d21");</script>
+            <br>
+            <noscript><a href="https://www.supercounters.com/"></a></noscript>
+        </center>
 
+        <div style="background-color: #0074d9; text-align: center; padding: 10px;">
+            <a href="https://telegram.me/cric_stream" target="_blank">
+                <button id="joinTelegramButton">Join Telegram</button>
+            </a>
+        </div>
+    </div>
+     <div>
+        <br>
+        <br>
+       <script async="async" data-cfasync="false" src="//carryglanced.com/2346ffc02acfb9eb4451708a5df9f609/invoke.js"></script>
+<div id="container-2346ffc02acfb9eb4451708a5df9f609"></div>
+    </div>
+    
+  </body>
 </html>
